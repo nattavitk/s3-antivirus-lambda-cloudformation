@@ -4,10 +4,17 @@
 
 const AWS = require("aws-sdk");
 const path = require("path");
-const s3 = new AWS.S3();
 const { downloadAVDefinitions, scanLocalFile } = require("./clamav");
 const { generateSystemMessage, generateTagSet } = require("../utils/utils");
 const { CLAMAV_BUCKET_NAME, PATH_TO_AV_DEFINITIONS } = require("../constants");
+
+// Set AWS Region from env
+const awsRegion = process.env.AWS_REGION;
+console.log("AWS Region: ", awsRegion);
+AWS.config.update({
+    region: awsRegion
+});
+const s3 = new AWS.S3({ apiVersion: "2006-03-01" });
 
 const { downloadFileFromS3 } = require("../utils/s3");
 

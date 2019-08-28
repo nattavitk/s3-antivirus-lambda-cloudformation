@@ -5,9 +5,17 @@
 const AWS = require("aws-sdk");
 const path = require("path");
 const fs = require("fs");
-const s3 = new AWS.S3();
 const { generateSystemMessage } = require("./utils");
 const constants = require("../constants");
+
+// Set AWS Region from env
+const awsRegion = process.env.AWS_REGION;
+console.log("AWS Region: ", awsRegion);
+AWS.config.update({
+    region: awsRegion
+});
+
+const s3 = new AWS.S3({ apiVersion: "2006-03-01" });
 
 /**
  * Retrieve the file size of S3 object without downloading.

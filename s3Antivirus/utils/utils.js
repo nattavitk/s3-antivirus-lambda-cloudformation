@@ -60,7 +60,7 @@ const extractKeyFromS3Event = s3Event => {
  * @return {string} Bucket
  */
 const extractBucketFromS3Event = s3Event => {
-    let bucketName = s3Event["Records"][0]["s3"]["bucket"]["name"];
+    const bucketName = s3Event["Records"][0]["s3"]["bucket"]["name"];
 
     if (!bucketName) {
         throw new Error("Unable to retrieve bucket information from the event");
@@ -75,7 +75,7 @@ const extractBucketFromS3Event = s3Event => {
  * @return {string} decoded key.
  */
 const extractKeyFromApiEvent = s3Event => {
-    let key = s3Event.s3Key;
+    const key = s3Event.s3Key;
 
     if (!key) {
         throw new Error(

@@ -8,11 +8,12 @@ rm -f ${LAMBDA_FILE}
 mkdir -p clamav
 
 echo "-- Downloading AmazonLinux container --"
-docker pull amazonlinux
-docker create -i -t -v ${PWD}/clamav:/home/docker  --name s3-antivirus-builder amazonlinux
+docker pull amazonlinux:2
+docker create -i -t -v ${PWD}/clamav:/home/docker  --name s3-antivirus-builder amazonlinux:2
 docker start s3-antivirus-builder
 
 echo "-- Updating, downloading and unpacking clamAV and ClamAV update --"
+# docker exec -it -w /home/docker s3-antivirus-builder yum upgrade -y
 docker exec -it -w /home/docker s3-antivirus-builder yum install -y cpio yum-utils
 docker exec -it -w /home/docker s3-antivirus-builder yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 docker exec -it -w /home/docker s3-antivirus-builder yum-config-manager --enable epel

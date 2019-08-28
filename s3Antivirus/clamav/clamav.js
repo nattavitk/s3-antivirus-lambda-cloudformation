@@ -5,7 +5,14 @@ const path = require("path");
 const constants = require("../constants");
 const { generateSystemMessage } = require("../utils/utils");
 
-const S3 = new AWS.S3();
+// Set AWS Region from env
+const awsRegion = process.env.AWS_REGION;
+console.log("AWS Region: ", awsRegion);
+AWS.config.update({
+    region: awsRegion
+});
+
+const S3 = new AWS.S3({ apiVersion: "2006-03-01" });
 
 /**
  * Updates the definitions using freshclam.
@@ -15,7 +22,7 @@ const S3 = new AWS.S3();
  */
 const updateAVDefinitonsWithFreshclam = () => {
     try {
-        let executionResult = execSync(
+        const executionResult = execSync(
             `${constants.PATH_TO_FRESHCLAM} --config-file=${constants.FRESHCLAM_CONFIG} --datadir=${constants.FRESHCLAM_WORK_DIR}`
         );
 
