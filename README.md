@@ -21,7 +21,6 @@ To update virus definition, it is needed to invoke `downloadDefinitionApp.lambda
 ```bash
 .
 ├── README.MD                   <-- This instructions file
-├── event.json                  <-- API Gateway Proxy Integration event payload
 ├── aws                         <-- AWS SAM (Cloudformation) template
 │   └── codepipeline-cloudformation.yaml   <-- CloudFormation template to create CI/CD Pipeline for this project
 │
@@ -38,6 +37,10 @@ To update virus definition, it is needed to invoke `downloadDefinitionApp.lambda
 │       └── s3.js               <-- S3 script
 │       └── utils.js            <-- Utilities script
 │
+├── scripts
+│   └── build.sh                <-- Script to build the lambda zip file with ClamAV binary files
+│   └── clean.sh                <-- Script to delete docker and temp folders
+│
 ├── .gitignore                  <-- GIT Ignore file
 ├── buildspec.yml               <-- Build Spec file for AWS CodePipeline
 ```
@@ -53,10 +56,24 @@ To update virus definition, it is needed to invoke `downloadDefinitionApp.lambda
 
 ### AWS resources
 
--   S3 to store virus definition
--   Lambda function to be `Virus scanner`
--   Lambda function to be `Virus definition updater`
--   CloudWatch event to trigger `Virus definition updater`
+-   S3 #1 `Virus definition store`
+-   S3 #2 `Lambda zip file store` (Optional)
+-   S3 #3 `File to be scanned store` (Only for IAM)
+-   Lambda #1 `Virus scanner`
+-   Lambda #2 `Virus definition updater`
+-   CloudWatch event `Virus definition updater trigger`
+
+### IAM Requirement
+
+1. Lambda #1 `Virus scanner`
+
+    - S3 #1 `Virus definition store` :: Get
+    - S3 #2 `Lambda zip file store` :: Get
+    - S3 #3 `File to be scanned store` :: Get + Put
+
+2. Lambda #2 `Virus definition updater`
+    - S3 #1 `Virus definition store` :: Put
+    - S3 #2 `Lambda zip file store` :: Get
 
 ## Developing
 
@@ -89,25 +106,21 @@ To develop `clamav-scanner-lambda`, the system is implemented with Lambda functi
 
     1.  S3 that stores lambda zip file
 
-        -   _S3 bucket name_ - can import from another stack
+        -   _S3 bucket name_ - can import from another stack (and use it for ARN)
 
         -   _S3 bucket key_ (zipped Lambda filename) - can import from another stack
 
-        -   _S3 bucket ARN_ - can import from another stack
-
     2.  S3 to store ClamAV definition files
 
-        -   _S3 bucket name_
+        -   _S3 bucket name_ (use it for ARN also)
 
-        -   _S3 bucket key_ - folder where the definitions are stored.
-
-        -   _S3 bucket ARN_
+        -   _S3 bucket key_ - folder where the definitions are stored
 
     3.  S3 that stores files which we need ClamAV to scan the virus _(only for IAM role purpose)_
 
-        -   _S3 bucket name_ - can import from another stack
+        -   _S3 bucket name_ - can import from another stack (and use it for ARN)
 
-        -   _S3 bucket ARN_ - can import from another stack
+        -   _S3 bucket key_ - folder where the target folder
 
 ## Authors
 

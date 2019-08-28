@@ -20,7 +20,7 @@ const S3 = new AWS.S3({ apiVersion: "2006-03-01" });
  * It will download the definitions to the current work dir.
  * @returns {Boolean}
  */
-const updateAVDefinitonsWithFreshclam = () => {
+const updateAVDefinitionsWithFreshclam = () => {
     try {
         const executionResult = execSync(
             `${constants.PATH_TO_FRESHCLAM} --config-file=${constants.FRESHCLAM_CONFIG} --datadir=${constants.FRESHCLAM_WORK_DIR}`
@@ -168,7 +168,7 @@ const scanLocalFile = pathToFile => {
 };
 
 module.exports = {
-    updateAVDefinitonsWithFreshclam,
+    updateAVDefinitionsWithFreshclam,
     downloadAVDefinitions,
     uploadAVDefinitions,
     scanLocalFile

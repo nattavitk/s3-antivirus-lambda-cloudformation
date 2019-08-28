@@ -5,7 +5,7 @@
 const { execSync } = require("child_process");
 const {
     uploadAVDefinitions,
-    updateAVDefinitonsWithFreshclam
+    updateAVDefinitionsWithFreshclam
 } = require("./clamav/clamav");
 const { cleanupFolder, generateSystemMessage } = require("./utils/utils");
 
@@ -25,7 +25,7 @@ const lambdaHandleEvent = async (event, context) => {
 
     await cleanupFolder("/tmp/");
 
-    await updateAVDefinitonsWithFreshclam();
+    await updateAVDefinitionsWithFreshclam();
 
     const result = execSync(`ls -l /tmp/`);
 
