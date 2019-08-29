@@ -5,15 +5,6 @@ Description: >
 
   S3 Antivirus scanner with ClamAV Lambda
 
-#    ___ _     _          _
-#   / __| |___| |__  __ _| |___
-#  | (_ | / _ \ '_ \/ _` | (_-<
-#   \___|_\___/_.__/\__,_|_/__/
-
-Globals:
-  Function:
-    Timeout: 300
-
 #   ___                         _
 #  | _ \__ _ _ _ __ _ _ __  ___| |_ ___ _ _ ___
 #  |  _/ _` | '_/ _` | '  \/ -_)  _/ -_) '_(_-<
@@ -39,7 +30,6 @@ Parameters:
   S3ClamAvDefinitionBucketPath:
     Type: String
     Default: "clamav"
-    MinLength: 1
     Description: "AWS S3 bucket path to folder that stores ClamAV virus definition files"
   S3TargetVirusScanBucketName:
     Type: String
@@ -48,8 +38,6 @@ Parameters:
     Description: "AWS S3 bucket name to which stores a file to be scanned"
   S3TargetVirusScanBucketPath:
     Type: String
-    Default: ""
-    MinLength: 1
     Description: "AWS S3 bucket path to folder which stores a file to be scanned"
 
 #   __  __                _
@@ -67,6 +55,17 @@ Mappings:
       name: "clamav_lambda.zip"
     prod:
       name: "clamav_lambda.zip"
+
+#    ___             _ _ _   _
+#   / __|___ _ _  __| (_) |_(_)___ _ _  ___
+#  | (__/ _ \ ' \/ _` | |  _| / _ \ ' \(_-<
+#   \___\___/_||_\__,_|_|\__|_\___/_||_/__/
+
+Conditions:
+  HasS3ClamAvDefinitionBucketPath:
+    !Not [!Equals ["", !Ref S3ClamAvDefinitionBucketPath]]
+  HasS3TargetVirusScanBucketPath:
+    !Not [!Equals ["", !Ref S3TargetVirusScanBucketPath]]
 
 #   ___
 #  | _ \___ ___ ___ _  _ _ _ __ ___ ___
@@ -114,7 +113,7 @@ Resources:
               - "s3:GetObject"
               - "s3:GetObjectVersion"
             Resource:
-              - !Sub arn:aws:s3:::${S3LambdaClamAvBucketName}/"*"
+              - !Sub arn:aws:s3:::${S3LambdaClamAvBucketName}/*
       Roles:
         - !Ref ClamAvLambdaVirusScannerRole
         - !Ref ClamAvLambdaVirusDefinitionUpdaterRole
@@ -130,7 +129,10 @@ Resources:
             Action:
               - "s3:PutObject"
             Resource:
-              - !Sub arn:aws:s3:::${S3ClamAvDefinitionBucketName}/${S3ClamAvDefinitionBucketPath}/"*"
+              - !If
+                - HasS3ClamAvDefinitionBucketPath
+                - !Sub arn:aws:s3:::${S3ClamAvDefinitionBucketName}/${S3ClamAvDefinitionBucketPath}/*
+                - !Sub arn:aws:s3:::${S3ClamAvDefinitionBucketName}/*
       Roles:
         - !Ref ClamAvLambdaVirusDefinitionUpdaterRole
 
@@ -146,7 +148,10 @@ Resources:
               - "s3:GetObject"
               - "s3:GetObjectVersion"
             Resource:
-              - !Sub arn:aws:s3:::${S3ClamAvDefinitionBucketName}/${S3ClamAvDefinitionBucketPath}/"*"
+              - !If
+                - HasS3ClamAvDefinitionBucketPath
+                - !Sub arn:aws:s3:::${S3ClamAvDefinitionBucketName}/${S3ClamAvDefinitionBucketPath}/*
+                - !Sub arn:aws:s3:::${S3ClamAvDefinitionBucketName}/*
       Roles:
         - !Ref ClamAvLambdaVirusScannerRole
 
@@ -179,7 +184,10 @@ Resources:
                   - "s3:GetObject"
                   - "s3:GetObjectVersion"
                 Resource:
-                  - !Sub arn:aws:s3:::${S3TargetVirusScanBucketName}/${S3TargetVirusScanBucketPath}/"*"
+                  - !If
+                    - HasS3TargetVirusScanBucketPath
+                    - !Sub arn:aws:s3:::${S3TargetVirusScanBucketName}/${S3TargetVirusScanBucketPath}/*
+                    - !Sub arn:aws:s3:::${S3TargetVirusScanBucketName}/*
       MaxSessionDuration: 3600
       Path: /
 
@@ -230,10 +238,10 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Handler: antivirusApp.lambdaHandleEvent
-      Runtime: node8.10
-      Description:
-        !Join ["-", [!Ref AWS::StackName, "lambda", "ClamAvLambdaVirusScanner"]]
+      Runtime: nodejs8.10
+      Description: "ClamAvLambdaVirusScanner Lambda"
       MemorySize: 1024
+      Timeout: 300
       Role: !GetAtt ClamAvLambdaVirusScannerRole.Arn
       Code:
         S3Bucket: !Ref S3LambdaClamAvBucketName
@@ -248,13 +256,10 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Handler: downloadDefinitionApp.lambdaHandleEvent
-      Runtime: node8.10
-      Description:
-        !Join [
-          "-",
-          [!Ref AWS::StackName, "lambda", "ClamAvLambdaVirusDefinitionUpdater"],
-        ]
+      Runtime: nodejs8.10
+      Description: "ClamAvLambdaVirusDefinitionUpdater Lambda"
       MemorySize: 1024
+      Timeout: 300
       Role: !GetAtt ClamAvLambdaVirusDefinitionUpdaterRole.Arn
       Code:
         S3Bucket: !Ref S3LambdaClamAvBucketName

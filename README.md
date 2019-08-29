@@ -2,7 +2,7 @@
 
 This is S3 antivirus which uses ClamAV scanner. It works on lambda functions and limited resource.
 
-This project is implemented on top of https://github.com/truework/lambda-s3-antivirus/. As ClamAV installed package is large and exceed lambda limitation. So, this project requires S3 to store the definition files (antivirus files).
+As ClamAV installed package is large and exceed lambda limitation. So, this project requires S3 to store the definition files (antivirus files).
 
 In order to use this ClamAV scanner, you have to create 2 lambda functions from the same lambda zip file.
 
@@ -122,7 +122,10 @@ To develop `clamav-scanner-lambda`, the system is implemented with Lambda functi
 
         -   _S3 bucket key_ - folder where the target folder
 
+## Contribution
+
+This project is implemented on top of https://github.com/truework/lambda-s3-antivirus/.
+
 ## Authors
 
--   **Truework** - _Original Creator of this project_
 -   **Nattavit Kamoltham** - _Solutions & Integration Architect at FWD Innovation Center_
