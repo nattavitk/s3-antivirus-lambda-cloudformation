@@ -1,6 +1,8 @@
-# S3 antivirus ClamAV scanner
+# S3 antivirus ClamAV AWS Lambda with AWS CloudFormation
 
-This is S3 antivirus which uses ClamAV scanner. It works on lambda functions and limited resource.
+This project is based on https://github.com/truework/lambda-s3-antivirus/ which is added AWS CloudFormation for DevOps purpose.
+
+S3 antivirus which uses ClamAV scanner. It works on lambda functions and limited resource.
 
 As ClamAV installed package is large and exceed lambda limitation. So, this project requires S3 to store the definition files (antivirus files).
 
@@ -8,7 +10,7 @@ In order to use this ClamAV scanner, you have to create 2 lambda functions from 
 
 1. **Virus scanner** lambda function (antivirusApp)
 
-2. **Virus definition updater** lambda function (downloadDefinition)
+2. **Virus definition updater** lambda function (downloadDefinitionApp)
 
 ## How it works
 
@@ -77,7 +79,7 @@ To update virus definition, it is needed to invoke `downloadDefinitionApp.lambda
 
 ## Developing
 
-To develop `clamav-scanner-lambda`, the system is implemented with Lambda functions NodeJS 10.x please follow the step below.
+To develop `clamav-scanner-lambda`, the system is implemented with Lambda functions NodeJS 8.10 please follow the step below.
 
 1. Run `amazonlinux` docker container, download `ClamAV`, and bundle lambda project `lambda.zip`
 
@@ -121,11 +123,3 @@ To develop `clamav-scanner-lambda`, the system is implemented with Lambda functi
         -   _S3 bucket name_ - can import from another stack (and use it for ARN)
 
         -   _S3 bucket key_ - folder where the target folder
-
-## Contribution
-
-This project is implemented on top of https://github.com/truework/lambda-s3-antivirus/.
-
-## Authors
-
--   **Nattavit Kamoltham** - _Solutions & Integration Architect at FWD Innovation Center_
