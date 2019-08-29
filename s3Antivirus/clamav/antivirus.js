@@ -6,7 +6,7 @@ const AWS = require("aws-sdk");
 const path = require("path");
 const { downloadAVDefinitions, scanLocalFile } = require("./clamav");
 const { generateSystemMessage, generateTagSet } = require("../utils/utils");
-const { CLAMAV_BUCKET_NAME, PATH_TO_AV_DEFINITIONS } = require("../constants");
+const constants = require("../constants");
 
 // Set AWS Region from env
 const awsRegion = process.env.AWS_REGION;
@@ -25,7 +25,10 @@ const { downloadFileFromS3 } = require("../utils/s3");
  * @param {String} s3ObjectBucket
  */
 const scanS3Object = async (s3ObjectKey, s3ObjectBucket) => {
-    await downloadAVDefinitions(CLAMAV_BUCKET_NAME, PATH_TO_AV_DEFINITIONS);
+    await downloadAVDefinitions(
+        constants.CLAMAV_BUCKET_NAME,
+        constants.PATH_TO_AV_DEFINITIONS
+    );
 
     await downloadFileFromS3(s3ObjectKey, s3ObjectBucket);
 

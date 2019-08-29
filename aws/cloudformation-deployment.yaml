@@ -33,9 +33,9 @@ Parameters:
     Description: "AWS S3 bucket path to folder that stores ClamAV virus definition files"
   S3TargetVirusScanBucketName:
     Type: String
-    Default: "ocr-heat-project-storage"
+    Default: "ocr-heat-certificate-*"
     MinLength: 1
-    Description: "AWS S3 bucket name to which stores a file to be scanned"
+    Description: "AWS S3 bucket name to which stores a file to be scanned (If there are more than 1 bucket, please manually add ARN in Lambda virus scanner role)"
   S3TargetVirusScanBucketPath:
     Type: String
     Description: "AWS S3 bucket path to folder which stores a file to be scanned"
@@ -181,6 +181,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - "s3:PutObject"
+                  - "s3:PutObjectTagging"
                   - "s3:GetObject"
                   - "s3:GetObjectVersion"
                 Resource:
