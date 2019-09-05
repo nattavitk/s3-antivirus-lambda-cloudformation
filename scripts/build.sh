@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
-LAMBDA_FILE="clamav_lambda.zip"
+LAMBDA_FILE="clamav_lambda_v2.zip"
 
 rm -f ${LAMBDA_FILE}
 

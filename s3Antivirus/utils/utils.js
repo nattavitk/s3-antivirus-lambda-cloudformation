@@ -22,6 +22,22 @@ const generateTagSet = virusScanStatus => {
 };
 
 /**
+ * addDummyTagSet
+ * @param {{TagSet: *[]}} tagSet
+ */
+const addDummyTagSet = (tagSet = { TagSet: [] }) => {
+    return {
+        TagSet: [
+            ...tagSet.TagSet,
+            {
+                Key: constants.FILE_TYPE,
+                Value: constants.DUMMY_PDF_REPLACEMENT
+            }
+        ]
+    };
+};
+
+/**
  * Cleanup the specific S3 folder by removing all of its content.
  * We need that to cleanup the /tmp/ folder after the download of the definitions.
  */
@@ -115,6 +131,7 @@ const generateSystemMessage = systemMessage => {
 };
 
 module.exports = {
+    addDummyTagSet,
     generateTagSet,
     cleanupFolder,
     extractKeyFromS3Event,

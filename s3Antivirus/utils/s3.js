@@ -15,7 +15,7 @@ AWS.config.update({
     region: awsRegion
 });
 
-const s3 = new AWS.S3({ apiVersion: "2006-03-01" });
+const S3 = new AWS.S3({ apiVersion: "2006-03-01" });
 
 /**
  * Retrieve the file size of S3 object without downloading.
@@ -24,7 +24,7 @@ const s3 = new AWS.S3({ apiVersion: "2006-03-01" });
  * @return {int} Length of S3 object in bytes.
  */
 const sizeOf = async (key, bucket) => {
-    const res = await s3.headObject({ Key: key, Bucket: bucket }).promise();
+    const res = await S3.headObject({ Key: key, Bucket: bucket }).promise();
     return res.ContentLength;
 };
 
@@ -39,6 +39,11 @@ const isS3FileTooBig = async (s3ObjectKey, s3ObjectBucket) => {
     return fileSize > constants.MAX_FILE_SIZE;
 };
 
+/**
+ * downloadFileFromS3
+ * @param {String} s3ObjectKey
+ * @param {String} s3ObjectBucket
+ */
 const downloadFileFromS3 = async (s3ObjectKey, s3ObjectBucket) => {
     const downloadDir = `/tmp/download`;
     if (!fs.existsSync(downloadDir)) {
@@ -49,16 +54,16 @@ const downloadFileFromS3 = async (s3ObjectKey, s3ObjectBucket) => {
     let writeStream = fs.createWriteStream(localPath);
 
     generateSystemMessage(
-        `Downloading file s3://${s3ObjectBucket}/${s3ObjectKey}`
+        `Downloading file S3://${s3ObjectBucket}/${s3ObjectKey}`
     );
 
-    let options = {
+    let getOptions = {
         Bucket: s3ObjectBucket,
         Key: s3ObjectKey
     };
 
     return new Promise((resolve, reject) => {
-        s3.getObject(options)
+        S3.getObject(getOptions)
             .createReadStream()
             .on("end", function() {
                 generateSystemMessage(
@@ -74,7 +79,108 @@ const downloadFileFromS3 = async (s3ObjectKey, s3ObjectBucket) => {
     });
 };
 
+/**
+ * taggingObjectInS3
+ * @async
+ * @param {String} bucketName
+ * @param {String} objectKey
+ * @param {String} tag
+ */
+const taggingObjectInS3 = async (bucketName, objectKey, tag) => {
+    var taggingParams = {
+        Bucket: bucketName,
+        Key: objectKey,
+        Tagging: tag
+    };
+
+    return S3.putObjectTagging(taggingParams).promise();
+};
+
+/**
+ * putObjectToS3
+ * @async
+ * @param {String} bucketName
+ * @param {String} objectKey
+ * @param {String} body
+ */
+const putObjectToS3 = async (bucketName, objectKey, body, options = {}) => {
+    let putOptions = {
+        Bucket: bucketName,
+        Key: objectKey,
+        Body: body,
+        ...(Object.keys(options).length === 0 && options.constructor === Object
+            ? {}
+            : options)
+    };
+
+    return S3.putObject(putOptions).promise();
+};
+
+/**
+ * getObjectStreamFromS3
+ * @param {String} bucketName
+ * @param {String} objectKey
+ */
+const getObjectStreamFromS3 = (bucketName, objectKey) => {
+    const getOptions = {
+        Bucket: bucketName,
+        Key: objectKey
+    };
+
+    return S3.getObject(getOptions);
+};
+
+/**
+ * moveObjectInS3
+ * @param {String} sourceBucket
+ * @param {String} sourceKey
+ * @param {String} destinationBucket
+ * @param {String} destinationKey
+ */
+const moveObjectInS3 = async (
+    sourceBucket,
+    sourceKey,
+    destinationBucket,
+    destinationKey
+) => {
+    // 1. Copy file from source to destination folder
+    const copyObjectParams = {
+        Bucket: destinationBucket,
+        CopySource: `${sourceBucket}/${sourceKey}`,
+        Key: destinationKey
+    };
+    const copyResult = await S3.copyObject(copyObjectParams).promise();
+
+    // 2. Remove file from source folder
+    const deleteObjectParams = {
+        Bucket: sourceBucket,
+        Key: sourceKey
+    };
+
+    const deleteResult = await S3.deleteObject(deleteObjectParams).promise();
+
+    return `${copyResult}\n${deleteResult}`;
+};
+
+/**
+ * getObjectTaggingFromS3
+ * @param {String} bucketName
+ * @param {String} objectKey
+ */
+const getObjectTaggingFromS3 = async (bucketName, objectKey) => {
+    const params = {
+        Bucket: bucketName,
+        Key: objectKey
+    };
+    return S3.getObjectTagging(params).promise();
+};
+
 module.exports = {
     downloadFileFromS3,
-    isS3FileTooBig
+    isS3FileTooBig,
+    getObjectStreamFromS3,
+    getObjectTaggingFromS3,
+    moveObjectInS3,
+    putObjectToS3,
+    taggingObjectInS3
 };

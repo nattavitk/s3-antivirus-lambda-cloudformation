@@ -1,18 +1,9 @@
-const AWS = require("aws-sdk");
 const fs = require("fs");
 const { execSync } = require("child_process");
 const path = require("path");
 const constants = require("../constants");
 const { generateSystemMessage } = require("../utils/utils");
-
-// Set AWS Region from env
-const awsRegion = process.env.AWS_REGION;
-console.log("AWS Region: ", awsRegion);
-AWS.config.update({
-    region: awsRegion
-});
-
-const S3 = new AWS.S3({ apiVersion: "2006-03-01" });
+const { getObjectStreamFromS3, putObjectToS3 } = require("../utils/s3");
 
 /**
  * Updates the definitions using freshclam.
@@ -62,20 +53,20 @@ const downloadAVDefinitions = async () => {
                     destinationFile
                 );
 
-                const options = {
-                    Bucket: constants.CLAMAV_BUCKET_NAME,
-                    Key: `${constants.PATH_TO_AV_DEFINITIONS}/${filenameToDownload}`
-                };
+                const getS3ObjectStream = getObjectStreamFromS3(
+                    constants.CLAMAV_BUCKET_NAME,
+                    `${constants.PATH_TO_AV_DEFINITIONS}/${filenameToDownload}`
+                );
 
-                const s3ReadStream = S3.getObject(options)
+                const s3ReadStream = getS3ObjectStream
                     .createReadStream()
-                    .on("end", function() {
+                    .on("end", () => {
                         generateSystemMessage(
                             `Finished download ${filenameToDownload}`
                         );
                         resolve();
                     })
-                    .on("error", function(err) {
+                    .on("error", err => {
                         generateSystemMessage(
                             `Error downloading definition file ${filenameToDownload}`
                         );
@@ -99,35 +90,30 @@ const downloadAVDefinitions = async () => {
  */
 const uploadAVDefinitions = async () => {
     const uploadPromises = constants.CLAMAV_DEFINITIONS_FILES.map(
-        filenameToUpload => {
-            return new Promise((resolve, reject) => {
+        async filenameToUpload => {
+            try {
                 generateSystemMessage(
                     `Uploading updated definitions for file ${filenameToUpload} ---`
                 );
 
-                let options = {
-                    Bucket: constants.CLAMAV_BUCKET_NAME,
-                    Key: `${constants.PATH_TO_AV_DEFINITIONS}/${filenameToUpload}`,
-                    Body: fs.createReadStream(
-                        path.join("/tmp/", filenameToUpload)
-                    )
-                };
+                const result = await putObjectToS3(
+                    constants.CLAMAV_BUCKET_NAME,
+                    `${constants.PATH_TO_AV_DEFINITIONS}/${filenameToUpload}`,
+                    fs.createReadStream(path.join("/tmp/", filenameToUpload))
+                );
 
-                S3.putObject(options, (err, data) => {
-                    if (err) {
-                        generateSystemMessage(
-                            `--- Error uploading ${filenameToUpload} ---`
-                        );
-                        console.log(err);
-                        reject();
-                        return;
-                    }
-                    resolve();
-                    generateSystemMessage(
-                        `--- Finished uploading ${filenameToUpload} ---`
-                    );
-                });
-            });
+                generateSystemMessage(
+                    `--- Finished uploading ${filenameToUpload} ---`
+                );
+
+                return result;
+            } catch (error) {
+                generateSystemMessage(
+                    `--- Error uploading ${filenameToUpload} ---`
+                );
+                console.log(error);
+                throw new Error(error);
+            }
         }
     );
 

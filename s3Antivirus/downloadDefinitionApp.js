@@ -17,10 +17,8 @@ const { cleanupFolder, generateSystemMessage } = require("./utils/utils");
  * 3. Cleanup the folders
  * 4. Upload the newest definitions to the existing bucket.
  *
- * @param event Event fired to invoke the new update function.
- * @param context
  */
-const lambdaHandleEvent = async (event, context) => {
+const lambdaHandleEvent = async () => {
     generateSystemMessage(`AV definition update start time: ${new Date()}`);
 
     await cleanupFolder("/tmp/");

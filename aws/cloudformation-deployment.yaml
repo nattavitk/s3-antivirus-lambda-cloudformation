@@ -19,12 +19,12 @@ Parameters:
     ConstraintDescription: must specify prod, dev, or uat.
   S3LambdaClamAvBucketName:
     Type: String
-    Default: "storage"
+    Default: "ocr-heat-project-storage"
     MinLength: 1
     Description: "AWS S3 bucket name which stores ClamAV Lambda zip file"
   S3ClamAvDefinitionBucketName:
     Type: String
-    Default: "storage"
+    Default: "ocr-heat-project-storage"
     MinLength: 1
     Description: "AWS S3 bucket name to which stores ClamAV virus definition files"
   S3ClamAvDefinitionBucketPath:
@@ -33,7 +33,7 @@ Parameters:
     Description: "AWS S3 bucket path to folder that stores ClamAV virus definition files"
   S3TargetVirusScanBucketName:
     Type: String
-    Default: "target-bucket"
+    Default: "ocr-heat-certificate-*"
     MinLength: 1
     Description: "AWS S3 bucket name to which stores a file to be scanned (If there are more than 1 bucket, please manually add ARN in Lambda virus scanner role)"
   S3TargetVirusScanBucketPath:
@@ -50,11 +50,11 @@ Mappings:
   # Zip file of Python Lambda for image classification model
   ClamAVZipFile:
     dev:
-      name: "clamav_lambda.zip"
+      name: "clamav_lambda_v2.zip"
     uat:
-      name: "clamav_lambda.zip"
+      name: "clamav_lambda_v2.zip"
     prod:
-      name: "clamav_lambda.zip"
+      name: "clamav_lambda_v2.zip"
 
 #    ___             _ _ _   _
 #   / __|___ _ _  __| (_) |_(_)___ _ _  ___
@@ -180,9 +180,11 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                  - "s3:DeleteObject"
                   - "s3:PutObject"
                   - "s3:PutObjectTagging"
                   - "s3:GetObject"
+                  - "s3:GetObjectTagging" # for copyObject
                   - "s3:GetObjectVersion"
                 Resource:
                   - !If

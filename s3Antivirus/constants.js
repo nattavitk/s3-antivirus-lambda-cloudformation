@@ -22,6 +22,11 @@ const PATH_TO_FRESHCLAM = "./freshclam";
 const PATH_TO_CLAMAV = "./clamscan";
 const FRESHCLAM_CONFIG = "freshclam.conf";
 const FRESHCLAM_WORK_DIR = "/tmp/";
+const INFECTED_DIR_NAME = "infected";
+const ASSET_PATH = "./assets/";
+const DUMMY_PDF_FILE_NAME = "ReplacementVirus.pdf";
+const FILE_TYPE = "FILE_TYPE";
+const DUMMY_PDF_REPLACEMENT = "REPLACEMENT_VIRUS_PDF";
 
 // Constants for tagging file after a virus scan.
 const STATUS_CLEAN_FILE = process.env.STATUS_CLEAN_FILE || "CLEAN";
@@ -39,13 +44,18 @@ const MAX_FILE_SIZE = process.env.MAX_FILE_SIZE || "314572800";
 const CLAMAV_DEFINITIONS_FILES = ["main.cvd", "daily.cvd", "bytecode.cvd"];
 
 module.exports = {
+    ASSET_PATH,
     CLAMAV_BUCKET_NAME,
+    DUMMY_PDF_FILE_NAME,
+    DUMMY_PDF_REPLACEMENT,
+    FILE_TYPE,
     PATH_TO_AV_DEFINITIONS,
     PATH_TO_FRESHCLAM,
     PATH_TO_CLAMAV,
     FRESHCLAM_CONFIG,
     FRESHCLAM_WORK_DIR,
     CLAMAV_DEFINITIONS_FILES,
+    INFECTED_DIR_NAME,
     STATUS_CLEAN_FILE,
     STATUS_INFECTED_FILE,
     STATUS_ERROR_PROCESSING_FILE,
