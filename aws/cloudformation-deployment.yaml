@@ -19,12 +19,12 @@ Parameters:
     ConstraintDescription: must specify prod, dev, or uat.
   S3LambdaClamAvBucketName:
     Type: String
-    Default: "ocr-heat-project-storage"
+    Default: "project-storage"
     MinLength: 1
     Description: "AWS S3 bucket name which stores ClamAV Lambda zip file"
   S3ClamAvDefinitionBucketName:
     Type: String
-    Default: "ocr-heat-project-storage"
+    Default: "project-storage"
     MinLength: 1
     Description: "AWS S3 bucket name to which stores ClamAV virus definition files"
   S3ClamAvDefinitionBucketPath:
@@ -33,7 +33,7 @@ Parameters:
     Description: "AWS S3 bucket path to folder that stores ClamAV virus definition files"
   S3TargetVirusScanBucketName:
     Type: String
-    Default: "ocr-heat-certificate-*"
+    Default: "target-bucket-*"
     MinLength: 1
     Description: "AWS S3 bucket name to which stores a file to be scanned (If there are more than 1 bucket, please manually add ARN in Lambda virus scanner role)"
   S3TargetVirusScanBucketPath:
