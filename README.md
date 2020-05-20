@@ -16,9 +16,9 @@ To scan S3 file, it starts from invoking `antivirusApp.lambdaHandleEvent` with S
 
 Once the event triggers the virus scanner Lambda, it immediately scans that file.
 
--   If the file is clean, the scanner tags the file with `virusScanTimestamp` and `virusScanStatus`
+- If the file is clean, the scanner tags the file with `virusScanTimestamp` and `virusScanStatus`
 
--   If the file is infected, the scanner tags and moves the file to `infected` folder and replace that file in the original folder with PDF dummy to remain the file existence
+- If the file is infected, the scanner tags and moves the file to `infected` folder and replace that file in the original folder with PDF dummy to remain the file existence
 
 To update virus definition, it is needed to invoke `downloadDefinitionApp.lambdaHandleEvent` then it run `clamav` command to download latest virus definition and stores in S3 definition bucket. This can be triggered by CloudWatch event.
 
@@ -28,19 +28,21 @@ To update virus definition, it is needed to invoke `downloadDefinitionApp.lambda
 .
 ├── README.MD                   <-- This instructions file
 ├── aws                         <-- AWS SAM (Cloudformation) template
-│   └── codepipeline-cloudformation.yaml   <-- CloudFormation template to create CI/CD Pipeline for this project
+│   └── cloudformation-deployment.yaml   <-- CloudFormation template
 │
 ├── s3Antivirus                 <-- Source code for a lambda function (NodeJS 8.10)
-│   └── antivirusApp.js         <-- Lambda function code for antivirus part
-│   └── downloadDefinitionApp.js    <-- Lambda function code for update definition part
-│   └── constants.js            <-- constants and environment variables
-│   └── freshclam.conf          <-- ClamAV configuration file
-│   └── package.json            <-- NodeJS dependencies and scripts
+│   └── assets
+│       └── ReplacementVirus.pdf    <-- Replacement file to defected one
+│   ├── antivirusApp.js         <-- Lambda function code for antivirus part
+│   ├── downloadDefinitionApp.js    <-- Lambda function code for update definition part
+│   ├── constants.js            <-- constants and environment variables
+│   ├── freshclam.conf          <-- ClamAV configuration file
+│   ├── package.json            <-- NodeJS dependencies and scripts
 │   └── clamav
-│       └── antivirus.js        <-- Scan Virus script
+│       ├── antivirus.js        <-- Scan Virus script
 │       └── clamav.js           <-- ClamAV Definition related script
 │   └── utils
-│       └── s3.js               <-- S3 script
+│       ├── s3.js               <-- S3 script
 │       └── utils.js            <-- Utilities script
 │
 ├── scripts
@@ -53,49 +55,49 @@ To update virus definition, it is needed to invoke `downloadDefinitionApp.lambda
 
 ## Requirements
 
--   This ClamAV is only compatible with NodeJS 8.10 runtime lambda
+- This ClamAV is only compatible with NodeJS 8.10 runtime lambda
 
 ### Development
 
--   [NodeJS 8.10+ installed](https://nodejs.org/en/download/releases/)
--   [Docker installed](https://www.docker.com/community-edition)
+- [NodeJS 8.10+ installed](https://nodejs.org/en/download/releases/)
+- [Docker installed](https://www.docker.com/community-edition)
 
 ### AWS resources
 
--   S3 #1 `Virus definition store`
--   S3 #2 `Lambda zip file store` (Optional)
--   S3 #3 `File to be scanned store` (Only for IAM)
--   Lambda #1 `Virus scanner`
--   Lambda #2 `Virus definition updater`
--   CloudWatch event `Virus definition updater trigger`
+- S3 #1 `Virus definition store`
+- S3 #2 `Lambda zip file store` (Optional)
+- S3 #3 `File to be scanned store` (Only for IAM)
+- Lambda #1 `Virus scanner`
+- Lambda #2 `Virus definition updater`
+- CloudWatch event `Virus definition updater trigger`
 
 ### IAM Requirement
 
 1. Lambda #1 `Virus scanner`
 
-    - S3 #1 `Virus definition store` :: Get
-    - S3 #2 `Lambda zip file store` :: Get
-    - S3 #3 `File to be scanned store` :: Get + Put
+   - S3 #1 `Virus definition store` :: Get
+   - S3 #2 `Lambda zip file store` :: Get
+   - S3 #3 `File to be scanned store` :: Get + Put
 
 2. Lambda #2 `Virus definition updater`
-    - S3 #1 `Virus definition store` :: Put
-    - S3 #2 `Lambda zip file store` :: Get
+   - S3 #1 `Virus definition store` :: Put
+   - S3 #2 `Lambda zip file store` :: Get
 
 ## Developing
 
-To develop `clamav-scanner-lambda`, the system is implemented with Lambda functions NodeJS 10.x please follow the step below.
+To develop `clamav-scanner-lambda`, the system is implemented with Lambda functions NodeJS 8.10 please follow the step below.
 
 1. Run `amazonlinux` docker container, download `ClamAV`, and bundle lambda project `lambda.zip`
 
 ```sh
-./scripts/build_lambda.sh
+./scripts/build.sh
 ```
 
 ## Deploying
 
 ### Using as standalone ClamAV lambda scanner
 
-1.  After getting `lambda.zip` file, you can deploy on AWS lambda function
+1.  After getting `clamav_lambda_v2.zip` file, you can deploy on AWS lambda function
 
 2.  Set 2 mandatory environment variables
 
@@ -112,26 +114,26 @@ To develop `clamav-scanner-lambda`, the system is implemented with Lambda functi
 
     1.  S3 that stores lambda zip file
 
-        -   _S3 bucket name_ - can import from another stack (and use it for ARN)
+        - _S3 bucket name_ - can import from another stack (and use it for ARN)
 
-        -   _S3 bucket key_ (zipped Lambda filename) - can import from another stack
+        - _S3 bucket key_ (zipped Lambda filename) - can import from another stack
 
     2.  S3 to store ClamAV definition files
 
-        -   _S3 bucket name_ (use it for ARN also)
+        - _S3 bucket name_ (use it for ARN also)
 
-        -   _S3 bucket key_ - folder where the definitions are stored
+        - _S3 bucket key_ - folder where the definitions are stored
 
     3.  S3 that stores files which we need ClamAV to scan the virus _(only for IAM role purpose)_
 
-        -   _S3 bucket name_ - can import from another stack (and use it for ARN)
+        - _S3 bucket name_ - can import from another stack (and use it for ARN)
 
-        -   _S3 bucket key_ - folder where the target folder
+        - _S3 bucket key_ - folder where the target folder
 
 ## Contribution
 
-This project is implemented on top of https://github.com/truework/lambda-s3-antivirus/.
+This project is implemented on top of https://github.com/truework/lambda-s3-antivirus/. Cheers https://github.com/truework
 
-## Authors
+## Maintainer
 
--   **Nattavit Kamoltham** - _Solutions & Integration Architect at FWD Innovation Center_
+- **Nattavit Kamoltham**
