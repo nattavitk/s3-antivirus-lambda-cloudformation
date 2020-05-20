@@ -1,5 +1,7 @@
 # S3 antivirus ClamAV scanner
 
+**⛔️🚫NOTE: This project is obsoleted as AWS does not have Lambda NodeJS 8 anymore. I will check and solve it.⛔️🚫**
+
 This is S3 antivirus which uses ClamAV scanner. It works on lambda functions and limited resource.
 
 As ClamAV installed package is large and exceed lambda limitation. So, this project requires S3 to store the definition files (antivirus files).
