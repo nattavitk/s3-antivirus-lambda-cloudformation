@@ -1,7 +1,5 @@
 # S3 antivirus ClamAV scanner
 
-**⛔️🚫NOTE: This project is obsoleted as AWS does not have Lambda NodeJS 8 anymore. I will check and solve it.⛔️🚫**
-
 This is S3 antivirus which uses ClamAV scanner. It works on lambda functions and limited resource.
 
 As ClamAV installed package is large and exceed lambda limitation. So, this project requires S3 to store the definition files (antivirus files).
@@ -57,11 +55,11 @@ To update virus definition, it is needed to invoke `downloadDefinitionApp.lambda
 
 ## Requirements
 
-- This ClamAV is only compatible with NodeJS 8.10 runtime lambda
+- This ClamAV is compatible with NodeJS 18.x runtime lambda
 
 ### Development
 
-- [NodeJS 8.10+ installed](https://nodejs.org/en/download/releases/)
+- [NodeJS 18.x+ installed](https://nodejs.org/en/download/releases/)
 - [Docker installed](https://www.docker.com/community-edition)
 
 ### AWS resources
@@ -87,7 +85,7 @@ To update virus definition, it is needed to invoke `downloadDefinitionApp.lambda
 
 ## Developing
 
-To develop `clamav-scanner-lambda`, the system is implemented with Lambda functions NodeJS 8.10 please follow the step below.
+To develop `clamav-scanner-lambda`, the system is implemented with Lambda functions using NodeJS 18.x. Please follow the step below.
 
 1. Run `amazonlinux` docker container, download `ClamAV`, and bundle lambda project `lambda.zip`
 

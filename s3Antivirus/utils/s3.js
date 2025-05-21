@@ -2,7 +2,7 @@
  * Lambda function that will be perform the scan and tag the file accordingly.
  */
 
-const AWS = require("aws-sdk");
+const { S3Client, HeadObjectCommand, GetObjectCommand, PutObjectTaggingCommand, PutObjectCommand, CopyObjectCommand, DeleteObjectCommand, GetObjectTaggingCommand } = require("@aws-sdk/client-s3");
 const path = require("path");
 const fs = require("fs");
 const { generateSystemMessage } = require("./utils");
@@ -11,11 +11,8 @@ const constants = require("../constants");
 // Set AWS Region from env
 const awsRegion = process.env.AWS_REGION;
 console.log("AWS Region: ", awsRegion);
-AWS.config.update({
-    region: awsRegion
-});
 
-const S3 = new AWS.S3({ apiVersion: "2006-03-01" });
+const s3Client = new S3Client({ region: process.env.AWS_REGION });
 
 /**
  * Retrieve the file size of S3 object without downloading.
@@ -24,7 +21,7 @@ const S3 = new AWS.S3({ apiVersion: "2006-03-01" });
  * @return {int} Length of S3 object in bytes.
  */
 const sizeOf = async (key, bucket) => {
-    const res = await S3.headObject({ Key: key, Bucket: bucket }).promise();
+    const res = await s3Client.send(new HeadObjectCommand({ Key: key, Bucket: bucket }));
     return res.ContentLength;
 };
 
@@ -62,10 +59,10 @@ const downloadFileFromS3 = async (s3ObjectKey, s3ObjectBucket) => {
         Key: s3ObjectKey
     };
 
-    return new Promise((resolve, reject) => {
-        S3.getObject(getOptions)
-            .createReadStream()
-            .on("end", function() {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const response = await s3Client.send(new GetObjectCommand(getOptions));
+            response.Body.on("end", function() {
                 generateSystemMessage(
                     `Finished downloading new object ${s3ObjectKey}`
                 );
@@ -73,9 +70,13 @@ const downloadFileFromS3 = async (s3ObjectKey, s3ObjectBucket) => {
             })
             .on("error", function(err) {
                 console.log(err);
-                reject();
+                reject(err); // Pass the error to the reject function
             })
             .pipe(writeStream);
+        } catch (err) {
+            console.log(err);
+            reject(err);
+        }
     });
 };
 
@@ -93,7 +94,7 @@ const taggingObjectInS3 = async (bucketName, objectKey, tag) => {
         Tagging: tag
     };
 
-    return S3.putObjectTagging(taggingParams).promise();
+    return s3Client.send(new PutObjectTaggingCommand(taggingParams));
 };
 
 /**
@@ -113,7 +114,7 @@ const putObjectToS3 = async (bucketName, objectKey, body, options = {}) => {
             : options)
     };
 
-    return S3.putObject(putOptions).promise();
+    return s3Client.send(new PutObjectCommand(putOptions));
 };
 
 /**
@@ -121,13 +122,13 @@ const putObjectToS3 = async (bucketName, objectKey, body, options = {}) => {
  * @param {String} bucketName
  * @param {String} objectKey
  */
-const getObjectStreamFromS3 = (bucketName, objectKey) => {
+const getObjectStreamFromS3 = async (bucketName, objectKey) => {
     const getOptions = {
         Bucket: bucketName,
         Key: objectKey
     };
-
-    return S3.getObject(getOptions);
+    const response = await s3Client.send(new GetObjectCommand(getOptions));
+    return response.Body; // This is a readable stream
 };
 
 /**
@@ -149,7 +150,7 @@ const moveObjectInS3 = async (
         CopySource: `${sourceBucket}/${sourceKey}`,
         Key: destinationKey
     };
-    const copyResult = await S3.copyObject(copyObjectParams).promise();
+    const copyResult = await s3Client.send(new CopyObjectCommand(copyObjectParams));
 
     // 2. Remove file from source folder
     const deleteObjectParams = {
@@ -157,7 +158,7 @@ const moveObjectInS3 = async (
         Key: sourceKey
     };
 
-    const deleteResult = await S3.deleteObject(deleteObjectParams).promise();
+    const deleteResult = await s3Client.send(new DeleteObjectCommand(deleteObjectParams));
 
     return `${copyResult}\n${deleteResult}`;
 };
@@ -172,7 +173,7 @@ const getObjectTaggingFromS3 = async (bucketName, objectKey) => {
         Bucket: bucketName,
         Key: objectKey
     };
-    return S3.getObjectTagging(params).promise();
+    return s3Client.send(new GetObjectTaggingCommand(params));
 };
 
 module.exports = {

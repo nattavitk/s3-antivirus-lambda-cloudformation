@@ -241,7 +241,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Handler: antivirusApp.lambdaHandleEvent
-      Runtime: nodejs8.10
+      Runtime: nodejs18.x
       Description: "ClamAvLambdaVirusScanner Lambda"
       MemorySize: 1024
       Timeout: 300
@@ -259,7 +259,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Handler: downloadDefinitionApp.lambdaHandleEvent
-      Runtime: nodejs8.10
+      Runtime: nodejs18.x
       Description: "ClamAvLambdaVirusDefinitionUpdater Lambda"
       MemorySize: 1024
       Timeout: 300

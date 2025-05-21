@@ -42,7 +42,8 @@ const updateAVDefinitionsWithFreshclam = () => {
 const downloadAVDefinitions = async () => {
     const downloadPromises = constants.CLAMAV_DEFINITIONS_FILES.map(
         filenameToDownload => {
-            return new Promise((resolve, reject) => {
+            // Add async here
+            return new Promise(async (resolve, reject) => {
                 const destinationFile = path.join("/tmp/", filenameToDownload);
 
                 generateSystemMessage(
@@ -53,13 +54,13 @@ const downloadAVDefinitions = async () => {
                     destinationFile
                 );
 
-                const getS3ObjectStream = getObjectStreamFromS3(
+                // getObjectStreamFromS3 is now async and returns the stream directly
+                const s3ReadStream = await getObjectStreamFromS3(
                     constants.CLAMAV_BUCKET_NAME,
                     `${constants.PATH_TO_AV_DEFINITIONS}/${filenameToDownload}`
                 );
 
-                const s3ReadStream = getS3ObjectStream
-                    .createReadStream()
+                s3ReadStream
                     .on("end", () => {
                         generateSystemMessage(
                             `Finished download ${filenameToDownload}`
